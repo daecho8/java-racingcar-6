@@ -3,57 +3,55 @@ package racingcar.game;
 import camp.nextstep.edu.missionutils.Console;
 import racingcar.domain.Car;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.stream;
+
 
 public class Game {
 
     public void start() {
-        System.out.println("경주할 자동차 이름을 입력하세요. (이름은 쉼표(,) 기준으로 구분");
-        String nameInput = Console.readLine();
-        String[] carNames = nameInput.split(",");
-        for (String name : carNames) {
-            if (name.length() > 5) {
-                throw new IllegalArgumentException();
-            }
-        }
-
-        Car[] cars = new Car[carNames.length];
-        for (int index = 0; index < carNames.length; index++) {
-            cars[index] = new Car(carNames[index]);
-        }
-
-        System.out.println("시도할 회수는 몇회인가요?");
-        int terms = Integer.parseInt(Console.readLine());
-        System.out.println("terms = " + terms);
-
-        int count = 0;
-        while (terms != count) {
-            for (Car carObj : cars) {
-//                System.out.println(carObj);
-                carObj.run();
-                System.out.println(carObj.getName() + " : " + carObj.getLocation());
-            }
-            System.out.println();
-            count++;
-        }
-
-        result(cars, terms);
+        List<Car> cars = this.getCars();
+        int count = this.getAttemptCount();
+        this.play(cars, count);
+        this.result(cars);
     }
 
-    private void result(Car[] cars, int terms) {
+    private List<Car> getCars() {
+        System.out.println("경주할 자동차 이름을 입력하세요. (이름은 쉼표(,) 기준으로 구분");
+        String nameInput = Console.readLine();
+
+        List<String> carNames = stream(nameInput.split(","))
+                .toList();
+
+        List<Car> cars = carNames.stream()
+                .map(name -> new Car(name))
+                .collect(Collectors.toList());
+        return cars;
+    }
+
+    private int getAttemptCount() {
+        System.out.println("시도할 회수는 몇회인가요?");
+        return Integer.parseInt(Console.readLine());
+    }
+
+    private void play(List<Car> cars, int attemptsCount) {
+        this.printBlankLine();
         System.out.println("실행 결과");
-        List<String > winners = new ArrayList<>();
-        for (Car carObj : cars) {
-            if (carObj.getLocation().length() == terms) {
-                winners.add(carObj.getName());
-            }
+        for (int i = 0; i < attemptsCount; i++) {
+            cars.forEach(car -> car.run());
+            this.printBlankLine();
         }
+    }
 
+    private void printBlankLine() {
+        System.out.print("\n");
+    }
+
+    void result(List<Car> cars) {
         System.out.print("최종 우승자 : ");
-        for (String winner : winners) {
-            System.out.print(winner);
-        }
-
+        Result result = new Result();
+        System.out.println(String.join(", ", result.showWinners(cars)));
     }
 }
